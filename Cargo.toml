@@ -1,0 +1,37 @@
+[package]
+name = "aimx"
+version = "0.1.0"
+edition = "2024"  # Using the latest Rust edition for 2026
+
+[dependencies]
+# The primary GUI framework
+eframe = { version = "0.33", features = ["persistence", "wgpu"] }
+
+# Windows-specific system calls for "Ghost Window" behavior
+# We need specific features for transparency and window manipulation
+windows = { version = "0.62", features = [
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_LibraryLoader",
+] }
+
+# Winit handles the actual window creation (comes with eframe, but we need direct access)
+winit = "0.30"
+
+# Configuration and profile saving
+serde = { version = "1.0", features = ["derive"] }
+ron = "0.11"                                       # Rusty Object Notation - cleaner than JSON for Rust configs
+
+# Future-proofing for Steam Integration
+steamworks = { version = "0.12", optional = true }
+
+[features]
+default = []
+steam = ["dep:steamworks"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'   # Keeps the binary small and prevents stack unwinding overhead
