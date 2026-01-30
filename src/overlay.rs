@@ -1,20 +1,53 @@
 use eframe::egui;
+use std::io::BufRead;
 use std::sync::{Arc, Mutex};
 
 use crate::config::Config;
 
-pub struct OverlayApp {
-    pub config: Arc<Mutex<Config>>,
-    pub show_panel: bool,
+pub fn run() -> eframe::Result<()> {
+    let config = Arc::new(Mutex::new(Config::load()));
+    let (sw, sh) = crate::platform::screen_size();
+
+    // Background thread reads config updates from stdin
+    let config_reader = config.clone();
+    std::thread::spawn(move || {
+        let stdin = std::io::stdin();
+        for line in stdin.lock().lines() {
+            match line {
+                Ok(line) if !line.is_empty() => {
+                    if let Ok(cfg) = serde_json::from_str::<Config>(&line) {
+                        *config_reader.lock().unwrap() = cfg;
+                    }
+                }
+                Err(_) => break, // stdin closed, parent died
+                _ => {}
+            }
+        }
+    });
+
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_transparent(true)
+            .with_decorations(false)
+            .with_always_on_top()
+            .with_mouse_passthrough(true)
+            .with_position([0.0, 0.0])
+            .with_inner_size([sw, sh]),
+        ..Default::default()
+    };
+
+    eframe::run_native(
+        "AIMX Overlay",
+        options,
+        Box::new(move |cc| {
+            crate::platform::apply_overlay_style(cc);
+            Ok(Box::new(OverlayApp { config }))
+        }),
+    )
 }
 
-impl OverlayApp {
-    pub fn new(config: Arc<Mutex<Config>>) -> Self {
-        Self {
-            config,
-            show_panel: true,
-        }
-    }
+struct OverlayApp {
+    config: Arc<Mutex<Config>>,
 }
 
 impl eframe::App for OverlayApp {
@@ -28,21 +61,11 @@ impl eframe::App for OverlayApp {
             .show(ctx, |ui| {
                 let painter = ui.painter();
                 let center = ui.max_rect().center();
-                let config = self.config.lock().unwrap().clone();
-                crate::crosshair::draw(painter, center, &config);
+                let cfg = self.config.lock().unwrap().clone();
+                crate::crosshair::draw(painter, center, &cfg);
             });
 
-        if self.show_panel {
-            let config = self.config.clone();
-            ctx.show_viewport_immediate(
-                egui::ViewportId::from_hash_of("control_panel"),
-                egui::ViewportBuilder::default()
-                    .with_title("AIMX Control Panel")
-                    .with_inner_size([350.0, 400.0]),
-                move |ctx, _class| {
-                    crate::panel::show(ctx, &config);
-                },
-            );
-        }
+        // Request repaint so we pick up config changes from stdin
+        ctx.request_repaint();
     }
 }
