@@ -1,4 +1,5 @@
 use eframe::egui;
+use log::{debug, error, info, warn};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -44,8 +45,11 @@ impl PanelApp {
             .stdin(Stdio::piped())
             .spawn()
         {
-            Ok(child) => self.child = Some(child),
-            Err(e) => eprintln!("failed to spawn overlay: {e}"),
+            Ok(child) => {
+                info!("spawned overlay process (pid: {})", child.id());
+                self.child = Some(child);
+            }
+            Err(e) => error!("failed to spawn overlay: {e}"),
         }
     }
 
@@ -59,16 +63,15 @@ impl PanelApp {
         if self.prev_config.as_deref() == Some(&json) {
             return;
         }
+        debug!("config changed, sending to overlay");
         self.prev_config = Some(json.clone());
 
-        if let Some(child) = &mut self.child {
-            if let Some(stdin) = &mut child.stdin {
+        if let Some(child) = &mut self.child && let Some(stdin) = &mut child.stdin {
                 let line = format!("{json}\n");
                 if stdin.write_all(line.as_bytes()).is_err() {
-                    // Overlay process died; drop the child handle
+                    warn!("overlay stdin write failed, process likely died");
                     self.child = None;
                 }
-            }
         }
     }
 }
@@ -82,11 +85,10 @@ impl eframe::App for PanelApp {
             // Overlay control
             let overlay_alive = self.child.is_some();
             if overlay_alive {
-                if ui.button("Hide Overlay").clicked() {
-                    if let Some(mut child) = self.child.take() {
+                if ui.button("Hide Overlay").clicked() && let Some(mut child) = self.child.take() {
+                        info!("killing overlay process");
                         let _ = child.kill();
                     }
-                }
             } else if ui.button("Show Overlay").clicked() {
                 self.spawn_overlay();
                 self.prev_config = None; // Force resend
@@ -136,6 +138,7 @@ impl eframe::App for PanelApp {
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         if let Some(mut child) = self.child.take() {
+            info!("panel exiting, killing overlay process");
             let _ = child.kill();
         }
     }

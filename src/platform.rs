@@ -29,6 +29,7 @@ pub fn apply_overlay_style(cc: &eframe::CreationContext) {
         && let raw_window_handle::RawWindowHandle::Win32(w) = handle.as_raw()
     {
         let hwnd = w.hwnd.get() as win32::HWND;
+        log::info!("applying overlay style to HWND {:?}", hwnd);
         unsafe {
             let style = win32::GetWindowLongW(hwnd, win32::GWL_EXSTYLE);
             win32::SetWindowLongW(
@@ -54,8 +55,10 @@ pub fn screen_size() -> (f32, f32) {
         let w = unsafe { win32::GetSystemMetrics(win32::SM_CXSCREEN) };
         let h = unsafe { win32::GetSystemMetrics(win32::SM_CYSCREEN) };
         if w > 0 && h > 0 {
+            log::debug!("detected screen size: {w}x{h}");
             return (w as f32, h as f32);
         }
     }
+    log::debug!("using fallback screen size: 1920x1080");
     (1920.0, 1080.0)
 }

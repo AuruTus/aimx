@@ -6,10 +6,21 @@ mod overlay;
 mod panel;
 mod platform;
 
-fn main() -> eframe::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
+use log::info;
 
-    if args.iter().any(|a| a == "--overlay") {
+fn main() -> eframe::Result<()> {
+    env_logger::init();
+
+    let args: Vec<String> = std::env::args().collect();
+    let mode = if args.iter().any(|a| a == "--overlay") {
+        "overlay"
+    } else {
+        "panel"
+    };
+
+    info!("starting aimx in {mode} mode");
+
+    if mode == "overlay" {
         overlay::run()
     } else {
         panel::run()

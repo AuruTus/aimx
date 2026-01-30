@@ -4,7 +4,7 @@ xwin:
 
 .PHONY: xwin-debug
 xwin-debug:
-	RUST_LOG=debug cargo xwin build --target x86_64-pc-windows-msvc
+	cargo xwin build --target x86_64-pc-windows-msvc
 
 .PHONY: check
 check:

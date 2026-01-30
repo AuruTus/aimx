@@ -3,7 +3,6 @@ use eframe::egui;
 use crate::config::Config;
 
 pub fn draw(painter: &egui::Painter, center: egui::Pos2, config: &Config) {
-    let center = egui::pos2(center.x + config.offset_x, center.y + config.offset_y);
     let fill = egui::Color32::from_rgb(config.color[0], config.color[1], config.color[2]);
     let stroke_color = egui::Color32::from_rgb(config.stroke_color[0], config.stroke_color[1], config.stroke_color[2]);
 

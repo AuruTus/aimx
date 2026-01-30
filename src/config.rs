@@ -1,3 +1,4 @@
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -36,15 +37,40 @@ fn config_path() -> PathBuf {
 
 impl Config {
     pub fn load() -> Self {
-        std::fs::read_to_string(config_path())
-            .ok()
-            .and_then(|s| serde_json::from_str(&s).ok())
-            .unwrap_or_default()
+        let path = config_path();
+        match std::fs::read_to_string(&path) {
+            Ok(s) => match serde_json::from_str(&s) {
+                Ok(cfg) => {
+                    info!("loaded config from {}", path.display());
+                    cfg
+                }
+                Err(e) => {
+                    warn!("corrupt config at {}: {e}, using defaults", path.display());
+                    Self::default()
+                }
+            },
+            Err(_) => {
+                debug!("no config at {}, using defaults", path.display());
+                Self::default()
+            }
+        }
+    }
+
+    /// Minimum window size needed to fully contain the crosshair.
+    pub fn window_size(&self) -> f32 {
+        let r = self.outer_radius.max(self.inner_radius) + self.stroke_width;
+        // diameter + padding
+        (r * 2.0 + 4.0).ceil().max(16.0)
     }
 
     pub fn save(&self) {
-        if let Ok(json) = serde_json::to_string_pretty(self) {
-            let _ = std::fs::write(config_path(), json);
+        let path = config_path();
+        match serde_json::to_string_pretty(self) {
+            Ok(json) => match std::fs::write(&path, json) {
+                Ok(_) => info!("saved config to {}", path.display()),
+                Err(e) => warn!("failed to write config: {e}"),
+            },
+            Err(e) => warn!("failed to serialize config: {e}"),
         }
     }
 }
