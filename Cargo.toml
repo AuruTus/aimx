@@ -5,19 +5,9 @@ edition = "2024"  # Using the latest Rust edition for 2026
 
 [dependencies]
 # The primary GUI framework
-eframe = { version = "0.33", features = ["persistence", "wgpu"] }
+eframe = { version = "0.33", features = ["persistence", "glow"] }
 
-# Windows-specific system calls for "Ghost Window" behavior
-# We need specific features for transparency and window manipulation
-windows = { version = "0.62", features = [
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_Foundation",
-    "Win32_Graphics_Gdi",
-    "Win32_System_LibraryLoader",
-] }
-
-# Winit handles the actual window creation (comes with eframe, but we need direct access)
-winit = "0.30"
+raw-window-handle = "0.6"
 
 # Configuration and profile saving
 serde = { version = "1.0", features = ["derive"] }
