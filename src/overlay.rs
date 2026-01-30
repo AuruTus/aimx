@@ -46,6 +46,7 @@ pub fn run() -> eframe::Result<()> {
             .with_decorations(false)
             .with_always_on_top()
             .with_mouse_passthrough(true)
+            .with_taskbar(false)
             .with_position([start_x, start_y])
             .with_inner_size([win_size, win_size]),
         ..Default::default()

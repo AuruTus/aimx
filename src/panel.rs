@@ -40,10 +40,18 @@ impl PanelApp {
 
     fn spawn_overlay(&mut self) {
         let exe = std::env::current_exe().expect("cannot find own executable");
-        match Command::new(exe)
-            .arg("overlay")
-            .stdin(Stdio::piped())
-            .spawn()
+        let mut cmd = Command::new(exe);
+        cmd.arg("overlay").stdin(Stdio::piped());
+
+        // Hide the overlay from the taskbar / process list on Windows
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x08000000;
+            cmd.creation_flags(CREATE_NO_WINDOW);
+        }
+
+        match cmd.spawn()
         {
             Ok(child) => {
                 info!("spawned overlay process (pid: {})", child.id());
