@@ -26,10 +26,12 @@ cargo build --release --features steam
 
 ```
 src/
-├── main.rs        -- entry point: NativeOptions setup, eframe::run_native
+├── main.rs        -- entry point: loads config, creates Arc<Mutex<Config>>, runs eframe
 ├── platform.rs    -- Win32 FFI, apply_overlay_style() (HWND extraction, click-through)
-├── overlay.rs     -- OverlayApp struct, eframe::App impl (clear_color, update)
-├── crosshair.rs   -- crosshair drawing logic (circle_filled + circle_stroke)
+├── overlay.rs     -- OverlayApp struct, spawns control panel as immediate viewport
+├── crosshair.rs   -- crosshair drawing logic, parameterized by Config
+├── config.rs      -- Config struct (serde), JSON load/save next to executable
+├── panel.rs       -- control panel UI (sliders, color pickers, save/reset)
 ```
 
 Built on:
@@ -45,3 +47,13 @@ The overlay window is configured as transparent, undecorated, and click-through 
 - Release builds use LTO, single codegen unit, and panic=abort for minimal binary size
 - Cross-compiled to `x86_64-pc-windows-msvc` from WSL using `cargo xwin`
 - `#![windows_subsystem = "windows"]` hides console in release builds
+- Config persists as JSON (`aimx_config.json`) next to executable
+- Control panel spawned as immediate viewport sharing `Arc<Mutex<Config>>` with overlay
+
+## TODO
+
+- [ ] Bug: control panel close button does not toggle `show_panel` back to false (immediate viewport lacks close callback -- need to detect close via `ctx.input()` or switch to deferred viewport)
+- [ ] Add hotkey (e.g. F1) to toggle control panel visibility
+- [ ] Cross-compile test with `make xwin` to verify dual-window works on Windows
+- [ ] Consider auto-save on change vs current manual save button
+- [ ] Add crosshair shape presets (dot, cross, circle+cross)

@@ -1,12 +1,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod config;
 mod crosshair;
 mod overlay;
+mod panel;
 mod platform;
 
 use eframe::egui;
+use std::sync::{Arc, Mutex};
 
 fn main() -> eframe::Result<()> {
+    let config = Arc::new(Mutex::new(config::Config::load()));
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_transparent(true)
@@ -20,9 +25,9 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "PrecisionHUD_Overlay",
         options,
-        Box::new(|cc| {
+        Box::new(move |cc| {
             platform::apply_overlay_style(cc);
-            Ok(Box::new(overlay::OverlayApp))
+            Ok(Box::new(overlay::OverlayApp::new(config)))
         }),
     )
 }

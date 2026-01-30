@@ -11,7 +11,7 @@ raw-window-handle = "0.6"
 
 # Configuration and profile saving
 serde = { version = "1.0", features = ["derive"] }
-ron = "0.11"                                       # Rusty Object Notation - cleaner than JSON for Rust configs
+serde_json = "1.0"
 
 # Future-proofing for Steam Integration
 steamworks = { version = "0.12", optional = true }
