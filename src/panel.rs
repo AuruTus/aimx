@@ -41,7 +41,7 @@ impl PanelApp {
     fn spawn_overlay(&mut self) {
         let exe = std::env::current_exe().expect("cannot find own executable");
         match Command::new(exe)
-            .arg("--overlay")
+            .arg("overlay")
             .stdin(Stdio::piped())
             .spawn()
         {

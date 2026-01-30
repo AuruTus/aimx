@@ -6,23 +6,35 @@ mod overlay;
 mod panel;
 mod platform;
 
+use clap::{Parser, Subcommand};
 use log::info;
+
+#[derive(Parser)]
+#[command(name = "aimx", about = "Crosshair overlay with control panel")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Run the overlay process (used internally by the panel)
+    Overlay,
+}
 
 fn main() -> eframe::Result<()> {
     env_logger::init();
 
-    let args: Vec<String> = std::env::args().collect();
-    let mode = if args.iter().any(|a| a == "--overlay") {
-        "overlay"
-    } else {
-        "panel"
-    };
+    let cli = Cli::parse();
 
-    info!("starting aimx in {mode} mode");
-
-    if mode == "overlay" {
-        overlay::run()
-    } else {
-        panel::run()
+    match cli.command {
+        Some(Command::Overlay) => {
+            info!("starting aimx in overlay mode");
+            overlay::run()
+        }
+        None => {
+            info!("starting aimx in panel mode");
+            panel::run()
+        }
     }
 }
