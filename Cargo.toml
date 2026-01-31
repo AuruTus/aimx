@@ -19,9 +19,12 @@ env_logger = "0.11"
 
 # CLI
 clap = { version = "4", features = ["derive"] }
+tray-icon = "0.19"
 
 # Future-proofing for Steam Integration
 steamworks = { version = "0.12", optional = true }
+image = { version = "0.25.9", default-features = false, features = ["png"] }
+crossbeam-channel = "0.5.15"
 
 [features]
 default = []
@@ -32,3 +35,6 @@ opt-level = 3
 lto = true
 codegen-units = 1
 panic = 'abort'   # Keeps the binary small and prevents stack unwinding overhead
+
+[build-dependencies]
+winresource = "0.1.30"

@@ -11,6 +11,12 @@ pub struct Config {
     pub outer_radius: f32,
     pub stroke_width: f32,
     pub stroke_color: [u8; 3],
+    #[serde(default = "default_close_action")]
+    pub close_action: String,
+}
+
+fn default_close_action() -> String {
+    "ask".to_string()
 }
 
 impl Default for Config {
@@ -23,6 +29,7 @@ impl Default for Config {
             outer_radius: 3.5,
             stroke_width: 1.0,
             stroke_color: [0, 0, 0],
+            close_action: default_close_action(),
         }
     }
 }

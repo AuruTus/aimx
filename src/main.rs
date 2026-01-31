@@ -22,8 +22,23 @@ enum Command {
     Overlay,
 }
 
+#[cfg(target_os = "windows")]
+fn set_app_user_model_id() {
+    unsafe extern "system" {
+        fn SetCurrentProcessExplicitAppUserModelID(app_id: *const u16) -> i32;
+    }
+    let id: Vec<u16> = "AIMX.Panel.1\0".encode_utf16().collect();
+    unsafe {
+        SetCurrentProcessExplicitAppUserModelID(id.as_ptr());
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn set_app_user_model_id() {}
+
 fn main() -> eframe::Result<()> {
     env_logger::init();
+    set_app_user_model_id();
 
     let cli = Cli::parse();
 
