@@ -26,12 +26,19 @@ cargo build --release --features steam
 
 ```
 src/
-├── main.rs        -- entry point: arg dispatch (default=panel, --overlay=overlay)
-├── platform.rs    -- Win32 FFI: screen_size(), apply_overlay_style()
-├── overlay.rs     -- overlay process: fullscreen transparent window, reads config from stdin
-├── panel.rs       -- panel process: control panel GUI, spawns overlay as child, writes config to stdin
-├── crosshair.rs   -- crosshair drawing logic, parameterized by Config
-├── config.rs      -- Config struct (serde), JSON load/save next to executable
+├── main.rs              -- entry point: arg dispatch (default=panel, overlay subcommand)
+├── platform.rs          -- Win32 FFI: screen_size(), apply_overlay_style(), JobObject
+├── crosshair.rs         -- crosshair drawing logic, parameterized by Config
+├── config.rs            -- Config struct (serde), JSON load/save next to executable
+├── panel/
+│   ├── mod.rs           -- pub fn run(), icon loading, NativeOptions setup
+│   ├── app.rs           -- PanelApp struct, tray minimize/restore, eframe::App impl
+│   ├── tray.rs          -- create_tray_icon(), spawn_tray_poller(), menu constants
+│   ├── ipc.rs           -- spawn_overlay(), send_config() over stdin pipe
+│   └── style.rs         -- PanelTheme, apply_theme(), PanelAction enum, draw_panel_ui()
+└── overlay/
+    ├── mod.rs           -- pub fn run(), stdin reader thread, eframe setup
+    └── app.rs           -- OverlayApp struct, viewport resize/reposition, eframe::App impl
 ```
 
 ### Two-Process Architecture
