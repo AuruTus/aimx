@@ -21,7 +21,7 @@ pub struct PanelApp {
     tray_quit: Arc<AtomicBool>,
     poller_started: bool,
     minimized: bool,
-    theme: style::PanelTheme,
+    dark_theme_applied: bool,
 }
 
 impl PanelApp {
@@ -49,7 +49,7 @@ impl PanelApp {
             tray_quit: Arc::new(AtomicBool::new(false)),
             poller_started: false,
             minimized: false,
-            theme: style::PanelTheme::default(),
+            dark_theme_applied: false,
         }
     }
 
@@ -83,8 +83,6 @@ impl PanelApp {
 
 impl eframe::App for PanelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        style::apply_theme(ctx, &self.theme);
-
         // Check tray menu actions
         if self.minimized {
             if self.tray_quit.load(Ordering::SeqCst) {
@@ -95,8 +93,17 @@ impl eframe::App for PanelApp {
             }
             if self.tray_restore.load(Ordering::SeqCst) {
                 self.restore_from_tray(ctx);
+            } else {
+                // Sleep until the tray poller wakes us via request_repaint()
+                ctx.request_repaint_after(std::time::Duration::from_secs(60));
+                return;
             }
-            return;
+        }
+
+        // Apply dark theme once (set_visuals triggers request_repaint, so avoid every frame)
+        if !self.dark_theme_applied {
+            ctx.set_visuals(egui::Visuals::dark());
+            self.dark_theme_applied = true;
         }
 
         // Handle close request
@@ -106,6 +113,7 @@ impl eframe::App for PanelApp {
                 "minimize" => {
                     ctx.send_viewport_cmd(ViewportCommand::CancelClose);
                     self.minimize_to_tray(ctx);
+                    return; // don't draw UI or trigger further repaints
                 }
                 _ => {
                     ctx.send_viewport_cmd(ViewportCommand::CancelClose);
@@ -144,9 +152,16 @@ impl eframe::App for PanelApp {
                             }
                             self.show_close_dialog = false;
                             self.minimize_to_tray(ctx);
+                            // Can't return here (inside closure), but minimized flag
+                            // ensures next frame hits the early return path
                         }
                     });
                 });
+
+            // If we just minimized from the dialog, don't draw the panel
+            if self.minimized {
+                return;
+            }
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {

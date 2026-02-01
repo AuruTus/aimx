@@ -8,6 +8,7 @@ use crate::config::Config;
 use app::OverlayApp;
 
 pub fn run() -> eframe::Result<()> {
+    crate::platform::set_app_user_model_id();
     let config = Arc::new(Mutex::new(Config::load()));
     let config_changed = Arc::new(std::sync::atomic::AtomicBool::new(true));
     let (sw, sh) = crate::platform::screen_size();

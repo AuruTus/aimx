@@ -23,10 +23,6 @@ impl Default for PanelTheme {
     }
 }
 
-pub fn apply_theme(ctx: &egui::Context, _theme: &PanelTheme) {
-    ctx.set_visuals(egui::Visuals::dark());
-}
-
 pub enum PanelAction {
     None,
     Save,

@@ -186,6 +186,24 @@ impl Drop for JobObject {
     }
 }
 
+/// Set the Application User Model ID so both panel and overlay
+/// are grouped together in the Windows taskbar / task manager.
+#[cfg(target_os = "windows")]
+pub fn set_app_user_model_id() {
+    unsafe extern "system" {
+        fn SetCurrentProcessExplicitAppUserModelID(app_id: *const u16) -> i32;
+    }
+    // "AIMX" encoded as null-terminated UTF-16
+    let id: Vec<u16> = "AIMX".encode_utf16().chain(std::iter::once(0)).collect();
+    unsafe {
+        SetCurrentProcessExplicitAppUserModelID(id.as_ptr());
+    }
+    log::info!("set AppUserModelID to AIMX");
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn set_app_user_model_id() {}
+
 /// Returns (width, height) of the primary monitor in pixels.
 pub fn screen_size() -> (f32, f32) {
     #[cfg(target_os = "windows")]

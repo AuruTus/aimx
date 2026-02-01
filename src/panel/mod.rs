@@ -16,6 +16,7 @@ fn load_icon_rgba() -> (Vec<u8>, u32, u32) {
 }
 
 pub fn run() -> eframe::Result<()> {
+    crate::platform::set_app_user_model_id();
     let (rgba, w, h) = load_icon_rgba();
     let viewport_icon = egui::IconData {
         rgba: rgba.clone(),
