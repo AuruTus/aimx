@@ -20,10 +20,9 @@ jobs:
         run: make win
 
       - name: Package Binary
-        shell: bash
+        shell: pwsh
         run: |
-          cd target/x86_64-pc-windows-msvc/release
-          zip aimx-windows.zip aimx.exe
+          Compress-Archive -Path target/x86_64-pc-windows-msvc/release/aimx.exe -DestinationPath target/x86_64-pc-windows-msvc/release/aimx-windows.zip
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
