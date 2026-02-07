@@ -35,7 +35,7 @@ src/
 │   ├── app.rs           -- PanelApp struct, tray minimize/restore, eframe::App impl
 │   ├── tray.rs          -- create_tray_icon(), spawn_tray_poller(), menu constants
 │   ├── ipc.rs           -- spawn_overlay(), send_config() over stdin pipe
-│   └── style.rs         -- PanelTheme, apply_theme(), PanelAction enum, draw_panel_ui()
+│   └── style.rs         -- PanelTheme, PanelAction enum, draw_panel_ui()
 └── overlay/
     ├── mod.rs           -- pub fn run(), stdin reader thread, eframe setup
     └── app.rs           -- OverlayApp struct, viewport resize/reposition, eframe::App impl
@@ -61,10 +61,14 @@ Built on:
 - Overlay is fullscreen, transparent, click-through via Win32 color-key
 - Panel spawns/kills overlay child process (Show/Hide Overlay button)
 
+## Known Issues
+
+- Panel/overlay process grouping in Windows Task Manager is incomplete (AppUserModelID set, but overlay still shows separately)
+- Panel CPU usage is higher than expected when minimized to tray (busy-loop suspected in eframe/tray event loop)
+
 ## TODO
 
-- [ ] Cross-compile test with `make xwin`
-- [ ] Add hotkey (e.g. F1) to toggle overlay visibility
-- [ ] Consider auto-save on change vs current manual save button
+- [x] Cross-compile test with `make xwin`
+- [ ] Auto-save config on change (deferred until features stabilize; manual save is better for debugging)
 - [ ] Add crosshair shape presets (dot, cross, circle+cross)
 - [ ] Overlay should exit gracefully when stdin closes (parent dies unexpectedly)
